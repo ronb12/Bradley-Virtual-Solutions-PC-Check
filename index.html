@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta name="theme-color" content="#4caf50">
   <title>Bradley Virtual Solutions PC Check</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
@@ -27,39 +26,36 @@
   <div class="container">
     <h2>Bradley Virtual Solutions PC Check</h2>
     <form id="compatibilityForm">
-      <!-- Core fields (same as before) -->
-      <!-- ... [Keep previous inputs like CPU, RAM, USB, etc.] -->
-      <label for="downloadSpeed">Internet Download Speed (Mbps):</label>
+      <label for="latency">Network Latency (ms):</label>
+      <select id="latency">
+        <option value="">Select Latency</option>
+        <option value="120">120 ms or lower</option>
+        <option value="Higher">Higher than 120 ms</option>
+      </select>
+      <div class="tooltip">✅ Auto-detected on page load</div>
+
+      <label for="downloadSpeed">Download Speed:</label>
       <select id="downloadSpeed">
         <option value="">Select Speed</option>
         <option value="10">10 Mbps or higher</option>
         <option value="Lower">Lower than 10 Mbps</option>
       </select>
 
-      <label for="uploadSpeed">Internet Upload Speed (Mbps):</label>
+      <label for="uploadSpeed">Upload Speed:</label>
       <select id="uploadSpeed">
         <option value="">Select Speed</option>
         <option value="3">3 Mbps or higher</option>
         <option value="Lower">Lower than 3 Mbps</option>
       </select>
 
-      <!-- 🔄 Manual re-detect -->
       <button type="button" onclick="autoDetectSystemInfo()">🔄 Auto-Detect System Info</button>
-      <div class="tooltip">Click if your system info hasn’t auto-filled.</div>
-
-      <!-- 🚀 Download Speed Test -->
       <button type="button" onclick="runSpeedTest()">🚀 Run Download Speed Test</button>
-
-      <!-- 📤 Real Upload Speed Test -->
       <button type="button" onclick="runRealUploadTest()">📤 Run Upload Speed Test</button>
-
-      <!-- Progress bar + result -->
-      <div id="speedStatus">Click a speed test button to begin.</div>
+      <div id="speedStatus">Click a test button to begin.</div>
       <div id="progressBar"><div id="progressFill"></div></div>
 
       <button type="button" onclick="checkCompatibility()">✅ Check Compatibility</button>
     </form>
-
     <div id="result" class="result"></div>
   </div>
 
@@ -90,6 +86,24 @@
           document.getElementById("wiredInternet")?.value = "No";
         }
       }
+
+      autoDetectLatency(); // 🔥 Run latency detection
+    }
+
+    async function autoDetectLatency() {
+      const latencyField = document.getElementById("latency");
+      const start = performance.now();
+      try {
+        await fetch("https://1.1.1.1/cdn-cgi/trace", { mode: "no-cors" });
+        const end = performance.now();
+        const latency = Math.round(end - start);
+        const latencyValue = latency <= 120 ? "120" : "Higher";
+        latencyField.value = latencyValue;
+        console.log(`🛰️ Latency detected: ${latency}ms`);
+      } catch {
+        latencyField.value = "";
+        console.warn("⚠️ Latency detection failed.");
+      }
     }
 
     async function runSpeedTest() {
@@ -113,7 +127,7 @@
         if (!response.ok) throw new Error("Download failed");
 
         const duration = (endTime - startTime) / 1000;
-        const fileSize = 1048576; // 1MB
+        const fileSize = 1048576;
         const speedMbps = ((fileSize * 8) / duration) / 1_000_000;
 
         const downloadValue = speedMbps >= 10 ? "10" : "Lower";
@@ -122,7 +136,7 @@
         updateProgress(100, `✅ Download Speed: ${speedMbps.toFixed(2)} Mbps`);
         setTimeout(() => {
           progressFill.style.width = "0%";
-          speedStatus.textContent = "Click a speed test button to retest.";
+          speedStatus.textContent = "Click a test button to retest.";
         }, 4000);
       } catch (err) {
         updateProgress(0, "❌ Download test failed.");
@@ -162,7 +176,7 @@
         updateProgress(100, `✅ Upload Speed: ${uploadMbps.toFixed(2)} Mbps`);
         setTimeout(() => {
           progressFill.style.width = "0%";
-          speedStatus.textContent = "Click a speed test button to retest.";
+          speedStatus.textContent = "Click a test button to retest.";
         }, 4000);
       } catch (err) {
         updateProgress(0, "❌ Upload test failed.");
@@ -170,14 +184,14 @@
     }
 
     function checkCompatibility() {
-      autoDetectSystemInfo(); // Re-run auto-detect
-      const ids = ["cpu", "usbHeadset", "usbMemoryStick", "dualMonitors", "monitorResolution", "wiredInternet", "downloadSpeed", "uploadSpeed", "latency", "ram", "storage", "freeStorage", "os"];
+      autoDetectSystemInfo();
+      const ids = ["latency", "downloadSpeed", "uploadSpeed"];
       const specs = Object.fromEntries(ids.map(id => [id, document.getElementById(id)?.value]));
 
       const results = [
+        { feature: "Latency", value: specs.latency, requirement: "120 ms or lower", result: specs.latency === "120" ? "✅ Pass" : "❌ Fail" },
         { feature: "Download Speed", value: specs.downloadSpeed, requirement: "10 Mbps or higher", result: specs.downloadSpeed === "10" ? "✅ Pass" : "❌ Fail" },
-        { feature: "Upload Speed", value: specs.uploadSpeed, requirement: "3 Mbps or higher", result: specs.uploadSpeed === "3" ? "✅ Pass" : "❌ Fail" },
-        // Add more checks as needed...
+        { feature: "Upload Speed", value: specs.uploadSpeed, requirement: "3 Mbps or higher", result: specs.uploadSpeed === "3" ? "✅ Pass" : "❌ Fail" }
       ];
 
       const allPass = results.every(r => r.result === "✅ Pass");
