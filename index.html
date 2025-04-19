@@ -27,10 +27,6 @@
     <h2>Bradley Virtual Solutions PC Check</h2>
     <form id="compatibilityForm">
 
-      <!-- Form Inputs (unchanged) -->
-      <!-- [ CPU, RAM, USB Headset, USB Stick, etc. ] -->
-      <!-- ... (Paste your full form input fields here if you've edited them) -->
-
       <label for="cpu">CPU Model:</label>
       <select id="cpu">
         <option value="">Select CPU</option>
@@ -43,8 +39,92 @@
         <option value="Other">Other</option>
       </select>
 
-      <!-- Add the rest of the inputs here (omitted for brevity) -->
-      <!-- Same form structure as previous message -->
+      <label for="usbHeadset">USB Headset:</label>
+      <select id="usbHeadset">
+        <option value="">Select Option</option>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+      </select>
+
+      <label for="usbMemoryStick">USB 3.0 Memory Stick:</label>
+      <select id="usbMemoryStick">
+        <option value="">Select Option</option>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+      </select>
+
+      <label for="dualMonitors">Dual Monitors:</label>
+      <select id="dualMonitors">
+        <option value="">Select Option</option>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+      </select>
+
+      <label for="monitorResolution">Monitor Resolution:</label>
+      <select id="monitorResolution">
+        <option value="">Select Resolution</option>
+        <option value="1280x1024">1280 x 1024 or higher</option>
+        <option value="Lower">Lower than 1280 x 1024</option>
+      </select>
+
+      <label for="wiredInternet">Wired Internet:</label>
+      <select id="wiredInternet">
+        <option value="">Select Option</option>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+      </select>
+
+      <label for="downloadSpeed">Internet Download Speed (Mbps):</label>
+      <select id="downloadSpeed">
+        <option value="">Select Speed</option>
+        <option value="10">10 Mbps or higher</option>
+        <option value="Lower">Lower than 10 Mbps</option>
+      </select>
+
+      <label for="uploadSpeed">Internet Upload Speed (Mbps):</label>
+      <select id="uploadSpeed">
+        <option value="">Select Speed</option>
+        <option value="3">3 Mbps or higher</option>
+        <option value="Lower">Lower than 3 Mbps</option>
+      </select>
+
+      <label for="latency">Network Latency (ms):</label>
+      <select id="latency">
+        <option value="">Select Latency</option>
+        <option value="120">120 ms or lower</option>
+        <option value="Higher">Higher than 120 ms</option>
+      </select>
+
+      <label for="ram">RAM (GB):</label>
+      <select id="ram">
+        <option value="">Select RAM</option>
+        <option value="4">4GB</option>
+        <option value="8">8GB</option>
+        <option value="16">16GB</option>
+        <option value="32">32GB or higher</option>
+      </select>
+
+      <label for="storage">Total Storage (GB):</label>
+      <select id="storage">
+        <option value="">Select Storage</option>
+        <option value="60">60GB or higher</option>
+        <option value="Lower">Lower than 60GB</option>
+      </select>
+
+      <label for="freeStorage">Free Storage (GB):</label>
+      <select id="freeStorage">
+        <option value="">Select Free Space</option>
+        <option value="20">20GB or higher</option>
+        <option value="Lower">Lower than 20GB</option>
+      </select>
+
+      <label for="os">Operating System:</label>
+      <select id="os">
+        <option value="">Select OS</option>
+        <option value="Windows 10">Windows 10</option>
+        <option value="Windows 8.1">Windows 8.1</option>
+        <option value="Other">Other</option>
+      </select>
 
       <button type="button" onclick="runSpeedTest()">Run Speed Test</button>
       <div id="speedStatus">Click "Run Speed Test" to begin.</div>
@@ -58,23 +138,19 @@
 
   <script>
     function autoDetectSystemInfo() {
-      // Detect OS
       const ua = navigator.userAgent;
       let os = "Other";
       if (ua.includes("Windows NT 10.0")) os = "Windows 10";
       else if (ua.includes("Windows NT 6.3")) os = "Windows 8.1";
       document.getElementById("os")?.value = os;
 
-      // Detect RAM
       const ram = navigator.deviceMemory || 4;
       const ramOption = ram >= 32 ? "32" : ram >= 16 ? "16" : ram >= 8 ? "8" : "4";
       document.getElementById("ram")?.value = ramOption;
 
-      // Detect screen resolution
       const resolution = screen.width >= 1280 && screen.height >= 1024 ? "1280x1024" : "Lower";
       document.getElementById("monitorResolution")?.value = resolution;
 
-      // Detect connection type (ethernet vs wifi)
       if ('connection' in navigator) {
         const type = navigator.connection.type || navigator.connection.effectiveType;
         if (type === "ethernet" || type === "wired") {
@@ -129,6 +205,8 @@
     }
 
     function checkCompatibility() {
+      autoDetectSystemInfo(); // ✅ re-detect on button click
+
       const ids = ["cpu", "usbHeadset", "usbMemoryStick", "dualMonitors", "monitorResolution", "wiredInternet", "downloadSpeed", "uploadSpeed", "latency", "ram", "storage", "freeStorage", "os"];
       const specs = Object.fromEntries(ids.map(id => [id, document.getElementById(id).value]));
 
