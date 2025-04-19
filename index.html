@@ -27,7 +27,6 @@
   <div class="container">
     <h2>Bradley Virtual Solutions PC Check</h2>
     <form id="compatibilityForm">
-
       <label for="os">Operating System:</label>
       <select id="os">
         <option value="">Select OS</option>
@@ -65,7 +64,6 @@
       </select>
       <div class="tooltip">⚠️ Most browsers do not allow detecting Ethernet. Please select manually.</div>
 
-      <!-- Remaining fields -->
       <label for="cpu">CPU Model:</label>
       <select id="cpu">
         <option value="">Select CPU</option>
@@ -134,11 +132,16 @@
         <option value="Lower">Lower than 20GB</option>
       </select>
 
-      <button type="button" onclick="runSpeedTest()">Run Speed Test</button>
+      <!-- 🔄 New Manual Detect Button -->
+      <button type="button" onclick="autoDetectSystemInfo()">🔄 Auto-Detect System Info</button>
+      <div class="tooltip">Click if your system info hasn’t auto-filled.</div>
+
+      <!-- Speed Test & Check Buttons -->
+      <button type="button" onclick="runSpeedTest()">🚀 Run Speed Test</button>
       <div id="speedStatus">Click "Run Speed Test" to begin.</div>
       <div id="progressBar"><div id="progressFill"></div></div>
 
-      <button type="button" onclick="checkCompatibility()">Check Compatibility</button>
+      <button type="button" onclick="checkCompatibility()">✅ Check Compatibility</button>
     </form>
 
     <div id="result" class="result"></div>
@@ -216,7 +219,7 @@
     }
 
     function checkCompatibility() {
-      autoDetectSystemInfo(); // Ensure latest auto-detection before checking
+      autoDetectSystemInfo(); // Re-run just in case
       const ids = ["cpu", "usbHeadset", "usbMemoryStick", "dualMonitors", "monitorResolution", "wiredInternet", "downloadSpeed", "uploadSpeed", "latency", "ram", "storage", "freeStorage", "os"];
       const specs = Object.fromEntries(ids.map(id => [id, document.getElementById(id).value]));
 
