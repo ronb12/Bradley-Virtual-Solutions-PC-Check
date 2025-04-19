@@ -2,19 +2,23 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bradley Virtual Solutions – PC Compatibility Check</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bradley Virtual Solutions – PC Check</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f0f0f0; padding: 20px; }
-    .container { background: #fff; max-width: 700px; margin: auto; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 20px; }
+    .container { max-width: 800px; background: #fff; padding: 25px; border-radius: 10px; margin: auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
     h2 { text-align: center; }
-    label { font-weight: bold; margin-top: 15px; display: block; }
+    label { font-weight: bold; display: block; margin-top: 15px; }
     select, button { width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 10px; }
-    #status { font-weight: bold; text-align: center; margin: 15px 0; }
+    #status { text-align: center; font-weight: bold; margin: 15px 0; }
     #progressBar { height: 10px; background: #ccc; border-radius: 5px; overflow: hidden; }
-    #progressFill { height: 100%; width: 0%; background: green; transition: width 0.3s ease; }
-    .success { background: #d4edda; color: #155724; padding: 15px; margin-top: 15px; border-radius: 6px; text-align: center; }
-    .fail { background: #f8d7da; color: #721c24; padding: 15px; margin-top: 15px; border-radius: 6px; text-align: center; }
+    #progressFill { height: 100%; width: 0%; background: #4caf50; transition: width 0.3s ease; }
+    table { width: 100%; margin-top: 20px; border-collapse: collapse; }
+    th, td { padding: 10px; border: 1px solid #ddd; }
+    .pass { background-color: #d4edda; color: #155724; }
+    .fail { background-color: #f8d7da; color: #721c24; }
+    .summary-pass { background: #d4edda; color: #155724; padding: 15px; text-align: center; border-radius: 6px; margin-top: 20px; }
+    .summary-fail { background: #f8d7da; color: #721c24; padding: 15px; text-align: center; border-radius: 6px; margin-top: 20px; }
   </style>
 </head>
 <body onload="autoDetectSystemInfo()">
@@ -118,12 +122,13 @@
     </select>
 
     <button onclick="autoDetectSystemInfo()">🔄 Auto-Detect System Info</button>
-    <button onclick="runDownloadTest()">📥 Download Speed Test</button>
-    <button onclick="runUploadTest()">📤 Upload Speed Test</button>
+    <button onclick="runDownloadTest()">📥 Run Download Speed Test</button>
+    <button onclick="runUploadTest()">📤 Run Upload Speed Test</button>
     <button onclick="checkCompatibility()">✅ Check Compatibility</button>
 
     <div id="progressBar"><div id="progressFill"></div></div>
-    <div id="status">Waiting for input...</div>
+    <div id="status">Status updates will appear here.</div>
+
     <div id="result"></div>
   </div>
 
@@ -165,7 +170,7 @@
       const status = document.getElementById("status");
       const progress = document.getElementById("progressFill");
 
-      status.textContent = "Running download test...";
+      status.textContent = "Testing download speed...";
       progress.style.width = "30%";
       try {
         const start = performance.now();
@@ -187,7 +192,7 @@
       const status = document.getElementById("status");
       const progress = document.getElementById("progressFill");
 
-      status.textContent = "Running upload test...";
+      status.textContent = "Testing upload speed...";
       progress.style.width = "30%";
       try {
         const blob = new Blob([new Uint8Array(1024 * 1024)]);
@@ -206,21 +211,42 @@
     }
 
     function checkCompatibility() {
-      const fields = [
-        "cpu", "ram", "os", "monitorResolution", "dualMonitors",
-        "usbHeadset", "usbMemoryStick", "wiredInternet",
-        "downloadSpeed", "uploadSpeed", "latency",
-        "storage", "freeStorage"
+      const criteria = [
+        { id: "cpu", pass: val => val.includes("Intel") || val.includes("Ryzen"), fix: "Upgrade to Intel i5 or AMD Ryzen 3+" },
+        { id: "ram", pass: val => parseInt(val) >= 8, fix: "Upgrade to 8GB or more RAM" },
+        { id: "os", pass: val => ["Windows 10", "Windows 8.1", "macOS"].includes(val), fix: "Install Windows 10, 8.1 or macOS" },
+        { id: "monitorResolution", pass: val => val === "1280x1024", fix: "Use 1280x1024 or higher monitor" },
+        { id: "dualMonitors", pass: val => val === "Yes", fix: "Connect a second monitor" },
+        { id: "usbHeadset", pass: val => val === "Yes", fix: "Connect a USB headset" },
+        { id: "usbMemoryStick", pass: val => val === "Yes", fix: "Insert USB 3.0 flash drive" },
+        { id: "wiredInternet", pass: val => val === "Yes", fix: "Use a wired Ethernet connection" },
+        { id: "downloadSpeed", pass: val => val === "10", fix: "Upgrade download speed to 10 Mbps+" },
+        { id: "uploadSpeed", pass: val => val === "3", fix: "Upgrade upload speed to 3 Mbps+" },
+        { id: "latency", pass: val => val === "120", fix: "Reduce latency to under 120 ms" },
+        { id: "storage", pass: val => val === "60", fix: "Increase total storage to 60GB+" },
+        { id: "freeStorage", pass: val => val === "20", fix: "Free up 20GB or more of disk space" }
       ];
-      const pass = fields.every(id => {
-        const val = document.getElementById(id).value;
-        return val && val !== "Lower" && val !== "No" && val !== "Other";
+
+      let html = "<table><tr><th>Feature</th><th>Status</th><th>Recommendation</th></tr>";
+      let allPass = true;
+
+      criteria.forEach(c => {
+        const val = document.getElementById(c.id).value;
+        const passed = c.pass(val);
+        if (!passed) allPass = false;
+        html += `<tr class="${passed ? 'pass' : 'fail'}">
+          <td>${document.querySelector("label[for=" + c.id + "]").textContent}</td>
+          <td>${passed ? "✅ Pass" : "❌ Fail"}</td>
+          <td>${passed ? "-" : c.fix}</td>
+        </tr>`;
       });
-      const result = document.getElementById("result");
-      result.className = pass ? "success" : "fail";
-      result.innerHTML = pass
-        ? "✅ Your system meets all Arise work-from-home requirements."
-        : "❌ One or more requirements are not met. Please review above.";
+
+      html += "</table>";
+      html += allPass
+        ? `<div class="summary-pass">✅ Your system meets all Arise requirements!</div>`
+        : `<div class="summary-fail">❌ Your system does NOT meet all Arise requirements. See fixes above.</div>`;
+
+      document.getElementById("result").innerHTML = html;
     }
   </script>
 </body>
