@@ -10,6 +10,7 @@
     .container { max-width: 800px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; background: #fff; }
     label { font-weight: bold; display: block; margin-top: 10px; }
     select, button { margin: 10px 0; padding: 10px; width: 100%; }
+    .tooltip { font-size: 0.9em; color: #555; margin-top: -8px; margin-bottom: 10px; }
     .result { margin-top: 20px; }
     table { width: 100%; margin-top: 20px; border-collapse: collapse; }
     table, th, td { border: 1px solid #ccc; }
@@ -27,6 +28,44 @@
     <h2>Bradley Virtual Solutions PC Check</h2>
     <form id="compatibilityForm">
 
+      <label for="os">Operating System:</label>
+      <select id="os">
+        <option value="">Select OS</option>
+        <option value="Windows 10">Windows 10</option>
+        <option value="Windows 8.1">Windows 8.1</option>
+        <option value="macOS">macOS</option>
+        <option value="Linux">Linux</option>
+        <option value="Other">Other</option>
+      </select>
+      <div class="tooltip">✅ Auto-detected if possible</div>
+
+      <label for="ram">RAM (GB):</label>
+      <select id="ram">
+        <option value="">Select RAM</option>
+        <option value="4">4GB</option>
+        <option value="8">8GB</option>
+        <option value="16">16GB</option>
+        <option value="32">32GB or higher</option>
+      </select>
+      <div class="tooltip">✅ Auto-detected in Chrome/Edge</div>
+
+      <label for="monitorResolution">Monitor Resolution:</label>
+      <select id="monitorResolution">
+        <option value="">Select Resolution</option>
+        <option value="1280x1024">1280 x 1024 or higher</option>
+        <option value="Lower">Lower than 1280 x 1024</option>
+      </select>
+      <div class="tooltip">✅ Auto-detected</div>
+
+      <label for="wiredInternet">Wired Internet:</label>
+      <select id="wiredInternet">
+        <option value="">Select Option</option>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+      </select>
+      <div class="tooltip">⚠️ Most browsers do not allow detecting Ethernet. Please select manually.</div>
+
+      <!-- Remaining fields -->
       <label for="cpu">CPU Model:</label>
       <select id="cpu">
         <option value="">Select CPU</option>
@@ -60,20 +99,6 @@
         <option value="No">No</option>
       </select>
 
-      <label for="monitorResolution">Monitor Resolution:</label>
-      <select id="monitorResolution">
-        <option value="">Select Resolution</option>
-        <option value="1280x1024">1280 x 1024 or higher</option>
-        <option value="Lower">Lower than 1280 x 1024</option>
-      </select>
-
-      <label for="wiredInternet">Wired Internet:</label>
-      <select id="wiredInternet">
-        <option value="">Select Option</option>
-        <option value="Yes">Yes</option>
-        <option value="No">No</option>
-      </select>
-
       <label for="downloadSpeed">Internet Download Speed (Mbps):</label>
       <select id="downloadSpeed">
         <option value="">Select Speed</option>
@@ -95,15 +120,6 @@
         <option value="Higher">Higher than 120 ms</option>
       </select>
 
-      <label for="ram">RAM (GB):</label>
-      <select id="ram">
-        <option value="">Select RAM</option>
-        <option value="4">4GB</option>
-        <option value="8">8GB</option>
-        <option value="16">16GB</option>
-        <option value="32">32GB or higher</option>
-      </select>
-
       <label for="storage">Total Storage (GB):</label>
       <select id="storage">
         <option value="">Select Storage</option>
@@ -118,14 +134,6 @@
         <option value="Lower">Lower than 20GB</option>
       </select>
 
-      <label for="os">Operating System:</label>
-      <select id="os">
-        <option value="">Select OS</option>
-        <option value="Windows 10">Windows 10</option>
-        <option value="Windows 8.1">Windows 8.1</option>
-        <option value="Other">Other</option>
-      </select>
-
       <button type="button" onclick="runSpeedTest()">Run Speed Test</button>
       <div id="speedStatus">Click "Run Speed Test" to begin.</div>
       <div id="progressBar"><div id="progressFill"></div></div>
@@ -138,25 +146,29 @@
 
   <script>
     function autoDetectSystemInfo() {
-      const ua = navigator.userAgent;
+      const ua = navigator.userAgent.toLowerCase();
       let os = "Other";
-      if (ua.includes("Windows NT 10.0")) os = "Windows 10";
-      else if (ua.includes("Windows NT 6.3")) os = "Windows 8.1";
-      document.getElementById("os")?.value = os;
+      if (ua.includes("windows nt 10.0")) os = "Windows 10";
+      else if (ua.includes("windows nt 6.3")) os = "Windows 8.1";
+      else if (ua.includes("macintosh")) os = "macOS";
+      else if (ua.includes("linux")) os = "Linux";
+      document.getElementById("os").value = os;
 
-      const ram = navigator.deviceMemory || 4;
-      const ramOption = ram >= 32 ? "32" : ram >= 16 ? "16" : ram >= 8 ? "8" : "4";
-      document.getElementById("ram")?.value = ramOption;
+      const ram = navigator.deviceMemory || 0;
+      if (ram > 0) {
+        const ramOption = ram >= 32 ? "32" : ram >= 16 ? "16" : ram >= 8 ? "8" : "4";
+        document.getElementById("ram").value = ramOption;
+      }
 
       const resolution = screen.width >= 1280 && screen.height >= 1024 ? "1280x1024" : "Lower";
-      document.getElementById("monitorResolution")?.value = resolution;
+      document.getElementById("monitorResolution").value = resolution;
 
-      if ('connection' in navigator) {
-        const type = navigator.connection.type || navigator.connection.effectiveType;
-        if (type === "ethernet" || type === "wired") {
-          document.getElementById("wiredInternet")?.value = "Yes";
+      if ('connection' in navigator && navigator.connection.type) {
+        const type = navigator.connection.type;
+        if (type === "ethernet") {
+          document.getElementById("wiredInternet").value = "Yes";
         } else if (type === "wifi") {
-          document.getElementById("wiredInternet")?.value = "No";
+          document.getElementById("wiredInternet").value = "No";
         }
       }
     }
@@ -180,7 +192,6 @@
         const endTime = new Date().getTime();
 
         updateProgress(60, "⏳ Calculating results...");
-
         if (!response.ok) throw new Error("Download failed");
 
         const duration = (endTime - startTime) / 1000;
@@ -205,41 +216,37 @@
     }
 
     function checkCompatibility() {
-      autoDetectSystemInfo(); // ✅ re-detect on button click
-
+      autoDetectSystemInfo(); // Ensure latest auto-detection before checking
       const ids = ["cpu", "usbHeadset", "usbMemoryStick", "dualMonitors", "monitorResolution", "wiredInternet", "downloadSpeed", "uploadSpeed", "latency", "ram", "storage", "freeStorage", "os"];
       const specs = Object.fromEntries(ids.map(id => [id, document.getElementById(id).value]));
 
       const results = [
-        { feature: "CPU Model", value: specs.cpu, requirement: "Intel Core i5-7000, AMD Ryzen 3 or better", result: specs.cpu.match(/i[5-9]|Ryzen [3-9]/) ? "✅ Pass" : "❌ Fail" },
+        { feature: "Operating System", value: specs.os, requirement: "Windows 10, 8.1, or macOS", result: ["Windows 10", "Windows 8.1", "macOS"].includes(specs.os) ? "✅ Pass" : "❌ Fail" },
+        { feature: "RAM", value: specs.ram, requirement: "8GB minimum", result: parseInt(specs.ram) >= 8 ? "✅ Pass" : "❌ Fail" },
+        { feature: "Resolution", value: specs.monitorResolution, requirement: "1280 x 1024 or higher", result: specs.monitorResolution === "1280x1024" ? "✅ Pass" : "❌ Fail" },
+        { feature: "Wired Internet", value: specs.wiredInternet, requirement: "Required", result: specs.wiredInternet === "Yes" ? "✅ Pass" : "❌ Fail" },
+        { feature: "CPU Model", value: specs.cpu, requirement: "Intel Core i5 or Ryzen 3+", result: specs.cpu.match(/i[5-9]|Ryzen [3-9]/) ? "✅ Pass" : "❌ Fail" },
         { feature: "USB Headset", value: specs.usbHeadset, requirement: "Required", result: specs.usbHeadset === "Yes" ? "✅ Pass" : "❌ Fail" },
         { feature: "USB 3.0 Memory Stick", value: specs.usbMemoryStick, requirement: "Required", result: specs.usbMemoryStick === "Yes" ? "✅ Pass" : "❌ Fail" },
         { feature: "Dual Monitors", value: specs.dualMonitors, requirement: "Required", result: specs.dualMonitors === "Yes" ? "✅ Pass" : "❌ Fail" },
-        { feature: "Monitor Resolution", value: specs.monitorResolution, requirement: "1280 x 1024 minimum", result: specs.monitorResolution === "1280x1024" ? "✅ Pass" : "❌ Fail" },
-        { feature: "Wired Internet", value: specs.wiredInternet, requirement: "Required", result: specs.wiredInternet === "Yes" ? "✅ Pass" : "❌ Fail" },
-        { feature: "Internet Download Speed", value: specs.downloadSpeed, requirement: "10 Mbps or higher", result: specs.downloadSpeed === "10" ? "✅ Pass" : "❌ Fail" },
-        { feature: "Internet Upload Speed", value: specs.uploadSpeed, requirement: "3 Mbps or higher", result: specs.uploadSpeed === "3" ? "✅ Pass" : "❌ Fail" },
-        { feature: "Network Latency", value: specs.latency, requirement: "120 ms or lower", result: specs.latency === "120" ? "✅ Pass" : "❌ Fail" },
-        { feature: "RAM (GB)", value: specs.ram, requirement: "8GB minimum", result: parseInt(specs.ram) >= 8 ? "✅ Pass" : "❌ Fail" },
+        { feature: "Download Speed", value: specs.downloadSpeed, requirement: "10 Mbps or higher", result: specs.downloadSpeed === "10" ? "✅ Pass" : "❌ Fail" },
+        { feature: "Upload Speed", value: specs.uploadSpeed, requirement: "3 Mbps or higher", result: specs.uploadSpeed === "3" ? "✅ Pass" : "❌ Fail" },
+        { feature: "Latency", value: specs.latency, requirement: "120 ms or lower", result: specs.latency === "120" ? "✅ Pass" : "❌ Fail" },
         { feature: "Total Storage", value: specs.storage, requirement: "60GB minimum", result: specs.storage === "60" ? "✅ Pass" : "❌ Fail" },
-        { feature: "Free Storage", value: specs.freeStorage, requirement: "20GB minimum", result: specs.freeStorage === "20" ? "✅ Pass" : "❌ Fail" },
-        { feature: "Operating System", value: specs.os, requirement: "Windows 8.1 or 10", result: ["Windows 10", "Windows 8.1"].includes(specs.os) ? "✅ Pass" : "❌ Fail" },
+        { feature: "Free Storage", value: specs.freeStorage, requirement: "20GB minimum", result: specs.freeStorage === "20" ? "✅ Pass" : "❌ Fail" }
       ];
 
       const allPass = results.every(r => r.result === "✅ Pass");
-
-      const table = `<table>
-        <thead><tr><th>Feature</th><th>Value</th><th>Requirement</th><th>Pass/Fail</th></tr></thead>
-        <tbody>
-        ${results.map(r => `<tr><td>${r.feature}</td><td>${r.value || "Not selected"}</td><td>${r.requirement}</td><td class="${r.result.includes("Pass") ? "pass" : "fail"}">${r.result}</td></tr>`).join("")}
-        </tbody></table>`;
-
       const resultDiv = document.getElementById("result");
-      resultDiv.innerHTML = table;
-
-      if (allPass) {
-        resultDiv.innerHTML += `<div class="success-message">✅ Congratulations! Your system meets all the requirements. You may proceed to enroll in a client on the Arise portal.</div>`;
-      }
+      resultDiv.innerHTML = `
+        <table>
+          <thead><tr><th>Feature</th><th>Value</th><th>Requirement</th><th>Pass/Fail</th></tr></thead>
+          <tbody>
+            ${results.map(r => `<tr><td>${r.feature}</td><td>${r.value || "Not selected"}</td><td>${r.requirement}</td><td class="${r.result.includes("Pass") ? "pass" : "fail"}">${r.result}</td></tr>`).join("")}
+          </tbody>
+        </table>
+        ${allPass ? `<div class="success-message">✅ Congratulations! Your system meets all the requirements. You may proceed to enroll in a client on the Arise portal.</div>` : ""}
+      `;
     }
   </script>
 </body>
