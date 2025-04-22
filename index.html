@@ -1,252 +1,233 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Bradley Virtual Solutions – Full PC Check (Arise + Windows 11)</title>
+  <title>1099 Contractor IRS-Compliant Calculator</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
-    .container { background: #fff; padding: 25px; border-radius: 10px; max-width: 800px; margin: auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    label { font-weight: bold; display: block; margin-top: 15px; }
-    select, button { width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 10px; }
-    table { width: 100%; margin-top: 20px; border-collapse: collapse; }
-    th, td { padding: 10px; border: 1px solid #ccc; }
-    .pass { background-color: #d4edda; color: #155724; }
-    .fail { background-color: #f8d7da; color: #721c24; }
-    .summary-pass { background: #d4edda; color: #155724; padding: 15px; margin-top: 15px; text-align: center; border-radius: 6px; }
-    .summary-fail { background: #f8d7da; color: #721c24; padding: 15px; margin-top: 15px; text-align: center; border-radius: 6px; }
-    #progressBar { height: 10px; background: #ccc; border-radius: 5px; overflow: hidden; margin-bottom: 15px; }
-    #progressFill { height: 100%; width: 0%; background: green; transition: width 0.3s ease; }
+    body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 20px; }
+    .container { max-width: 960px; margin: auto; background: #fff; padding: 30px;
+      border-radius: 10px; box-shadow: 0 0 12px rgba(0,0,0,0.1); }
+    h1 { text-align: center; }
+    label { font-weight: bold; display: block; margin-top: 10px; }
+    input, select, button {
+      width: 100%; padding: 10px; margin-top: 6px; margin-bottom: 12px;
+      border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box;
+    }
+    button { background: #007bff; color: white; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    table {
+      width: 100%; margin-top: 20px; border-collapse: collapse; font-size: 14px;
+    }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    th { background: #007bff; color: white; }
+    .summary { background: #eef9ff; padding: 15px; border-radius: 8px; margin-top: 20px; }
+    .alert { background: #fff3cd; border-left: 5px solid #ffc107;
+      padding: 10px; margin-top: 10px; border-radius: 6px; display: none; }
+    .tooltip {
+      display: inline-block; border-bottom: 1px dotted #000; cursor: help;
+    }
+    .back-link {
+      display: inline-block; margin-bottom: 15px; background: #007bff;
+      color: white; padding: 10px 15px; text-decoration: none; border-radius: 6px;
+    }
   </style>
 </head>
-<body onload="autoDetectSystemInfo()">
-  <div class="container">
-    <h2>Bradley Virtual Solutions – Full Arise PC Compatibility Check</h2>
+<body>
+<div class="container">
+  <a class="back-link" href="index.html">🔙 Back to Dashboard</a>
+  <h1>1099 Contractor IRS-Compliant Calculator</h1>
 
-    <label for="cpu">CPU Model:</label>
-    <select id="cpu">
-      <option value="">Select</option>
-      <option value="Intel i5">Intel Core i5 or better</option>
-      <option value="AMD Ryzen 3">AMD Ryzen 3 or better</option>
-      <option value="Other">Other</option>
-    </select>
+  <label>Tax Year</label>
+  <select id="taxYear" onchange="updateMileageNote()">
+    <option value="2025" selected>2025</option>
+    <option value="2024">2024</option>
+  </select>
 
-    <label for="ram">RAM (GB):</label>
-    <select id="ram">
-      <option value="">Select</option>
-      <option value="4">4 GB</option>
-      <option value="8">8 GB</option>
-      <option value="16">16 GB</option>
-      <option value="32">32 GB+</option>
-    </select>
+  <label>Total Income ($)</label>
+  <input type="number" id="income" />
 
-    <label for="os">Operating System:</label>
-    <select id="os">
-      <option value="">Select</option>
-      <option value="Windows 11">Windows 11</option>
-      <option value="Windows 10">Windows 10</option>
-      <option value="Windows 8.1">Windows 8.1</option>
-      <option value="macOS">macOS</option>
-      <option value="Other">Other</option>
-    </select>
+  <label>Total Business Expenses ($)</label>
+  <input type="number" id="expenses" />
 
-    <label for="monitorResolution">Monitor Resolution:</label>
-    <select id="monitorResolution">
-      <option value="">Select</option>
-      <option value="1280x1024">1280x1024 or higher</option>
-      <option value="Lower">Lower</option>
-    </select>
+  <label>Home Office Size (sq. ft.)
+    <span class="tooltip" title="Max 300 sqft × $5/sqft (IRS simplified rate)">🛈</span>
+  </label>
+  <input type="number" id="homeSqft" />
 
-    <label for="dualMonitors">Dual Monitors:</label>
-    <select id="dualMonitors">
-      <option value="">Select</option>
-      <option value="Yes">Yes</option>
-      <option value="No">No</option>
-    </select>
+  <label>Internet Use for Business (%)
+    <span class="tooltip" title="Only % of internet used for business is deductible. (IRS Pub 535)">🛈</span>
+  </label>
+  <input type="number" id="internetPercent" />
 
-    <label for="usbHeadset">USB Headset:</label>
-    <select id="usbHeadset">
-      <option value="">Select</option>
-      <option value="Yes">Yes</option>
-      <option value="No">No</option>
-    </select>
+  <label>Miles Driven for Business
+    <span class="tooltip" title="IRS standard rate: $0.67 (2024), $0.685 (2025) (IRS Notice 2023-03)">🛈</span>
+  </label>
+  <input type="number" id="miles" />
 
-    <label for="usbMemoryStick">USB 3.0 Flash Drive:</label>
-    <select id="usbMemoryStick">
-      <option value="">Select</option>
-      <option value="Yes">Yes</option>
-      <option value="No">No</option>
-    </select>
+  <label>Supply Costs ($)
+    <span class="tooltip" title="Only business-use supply expenses (IRS Pub 535)">🛈</span>
+  </label>
+  <input type="number" id="supplies" />
 
-    <label for="wiredInternet">Wired Internet:</label>
-    <select id="wiredInternet">
-      <option value="">Select</option>
-      <option value="Yes">Yes (Ethernet)</option>
-      <option value="No">No (Wi-Fi)</option>
-    </select>
+  <label>State</label>
+  <select id="state"></select>
 
-    <label for="downloadSpeed">Download Speed (Mbps):</label>
-    <select id="downloadSpeed">
-      <option value="">Not Tested</option>
-      <option value="10">10 Mbps or higher</option>
-      <option value="Lower">Lower than 10 Mbps</option>
-    </select>
+  <label>Estimated Tax Payments Made ($)</label>
+  <input type="number" id="payments" />
 
-    <label for="uploadSpeed">Upload Speed (Mbps):</label>
-    <select id="uploadSpeed">
-      <option value="">Not Tested</option>
-      <option value="3">3 Mbps or higher</option>
-      <option value="Lower">Lower than 3 Mbps</option>
-    </select>
+  <div class="alert" id="irsAlert"></div>
 
-    <label for="latency">Latency (ms):</label>
-    <select id="latency">
-      <option value="">Detecting...</option>
-      <option value="120">120 ms or lower</option>
-      <option value="Higher">Higher than 120 ms</option>
-    </select>
+  <button onclick="addEntry()">+ Add Entry</button>
+  <button onclick="runAudit()">🛡️ Run IRS Audit Check</button>
+  <button onclick="exportCSV()">📤 Export CSV</button>
 
-    <label for="storage">Total Storage (GB):</label>
-    <select id="storage">
-      <option value="">Select</option>
-      <option value="60">60 GB or higher</option>
-      <option value="Lower">Lower than 60 GB</option>
-    </select>
+  <table id="entryTable">
+    <thead>
+      <tr>
+        <th>#</th><th>Income</th><th>Expenses</th><th>Deductions</th><th>Net</th>
+        <th>SE Tax</th><th>Federal</th><th>State</th><th>Total</th><th>Paid</th><th>Owed</th><th>❌</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
-    <label for="freeStorage">Free Storage (GB):</label>
-    <select id="freeStorage">
-      <option value="">Select</option>
-      <option value="20">20 GB or higher</option>
-      <option value="Lower">Lower than 20 GB</option>
-    </select>
+  <div class="summary" id="summaryBox"></div>
+  <div class="summary" id="auditBox" style="display: none;"></div>
+</div>
 
-    <button onclick="autoDetectSystemInfo()">🔄 Auto-Detect System Info</button>
-    <button onclick="runDownloadTest()">📥 Run Download Speed Test</button>
-    <button onclick="runUploadTest()">📤 Run Upload Speed Test</button>
-    <button onclick="checkCompatibility()">✅ Check Compatibility</button>
+<script>
+  const STORAGE_KEY = "contractor_log_v2";
+  const mileageRates = { 2024: 0.67, 2025: 0.685 };
+  const taxBrackets = {
+    2024: i => i <= 11000 ? i * 0.1 : i <= 44725 ? 1100 + (i - 11000) * 0.12 : 5147 + (i - 44725) * 0.22,
+    2025: i => i <= 11300 ? i * 0.1 : i <= 45675 ? 1130 + (i - 11300) * 0.12 : 5211 + (i - 45675) * 0.22
+  };
+  const states = {
+    "South Carolina": 3.15, "California": 9.3, "Texas": 0, "New York": 6.85, "Florida": 0, "Illinois": 4.95
+  };
 
-    <div id="progressBar"><div id="progressFill"></div></div>
-    <div id="status">Status updates will appear here.</div>
-    <div id="result"></div>
-  </div>
+  const stateSel = document.getElementById("state");
+  for (let s in states) {
+    const opt = document.createElement("option");
+    opt.value = s; opt.textContent = s;
+    stateSel.appendChild(opt);
+  }
 
-  <script>
-    function autoDetectSystemInfo() {
-      const ua = navigator.userAgent.toLowerCase();
-      if (ua.includes("windows nt 10.0")) {
-        const isWin11 = navigator.userAgentData?.platform === "Windows" &&
-                        navigator.hardwareConcurrency >= 4 &&
-                        window.devicePixelRatio > 1;
-        document.getElementById("os").value = isWin11 ? "Windows 11" : "Windows 10";
-      } else if (ua.includes("windows nt 6.3")) {
-        document.getElementById("os").value = "Windows 8.1";
-      } else if (ua.includes("macintosh")) {
-        document.getElementById("os").value = "macOS";
-      } else {
-        document.getElementById("os").value = "Other";
-      }
+  function updateMileageNote() {
+    document.querySelectorAll(".tooltip")[2].title = `IRS standard rate: $${mileageRates[document.getElementById("taxYear").value]} per mile`;
+  }
 
-      const ram = navigator.deviceMemory || 0;
-      if (ram > 0) {
-        const ramOption = ram >= 32 ? "32" : ram >= 16 ? "16" : ram >= 8 ? "8" : "4";
-        document.getElementById("ram").value = ramOption;
-      }
+  function getDeductions(year, sqft, internet, miles, supplies) {
+    const home = Math.min(sqft, 300) * 5;
+    const internetDed = (internet / 100) * 720;
+    const mileage = miles * mileageRates[year];
+    return { total: home + internetDed + supplies + mileage, breakdown: { home, internetDed, supplies, mileage } };
+  }
 
-      detectLatency();
+  function addEntry() {
+    const year = document.getElementById("taxYear").value;
+    const income = parseFloat(document.getElementById("income").value) || 0;
+    const expenses = parseFloat(document.getElementById("expenses").value) || 0;
+    const sqft = parseFloat(document.getElementById("homeSqft").value) || 0;
+    const internet = parseFloat(document.getElementById("internetPercent").value) || 0;
+    const miles = parseFloat(document.getElementById("miles").value) || 0;
+    const supplies = parseFloat(document.getElementById("supplies").value) || 0;
+    const state = document.getElementById("state").value;
+    const paid = parseFloat(document.getElementById("payments").value) || 0;
+
+    const { total: deductions } = getDeductions(year, sqft, internet, miles, supplies);
+    const net = income - expenses - deductions;
+    const se = net * 0.153;
+    const fed = taxBrackets[year](net);
+    const stateTax = net * (states[state] / 100);
+    const total = se + fed + stateTax;
+    const owed = total - paid;
+
+    const alertBox = document.getElementById("irsAlert");
+    alertBox.style.display = (net > 400) ? "none" : "block";
+    alertBox.textContent = "⚠️ IRS Alert: Self-employment income under $400 is not taxable for SE tax.";
+
+    const logs = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    logs.push({ income, expenses, deductions, net, se, fed, stateTax, total, paid, owed, sqft, internet, miles, supplies });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(logs));
+    renderTable();
+  }
+
+  function renderTable() {
+    const tbody = document.querySelector("tbody");
+    const logs = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    tbody.innerHTML = "";
+    let totals = { income: 0, expenses: 0, deductions: 0, net: 0, se: 0, fed: 0, stateTax: 0, total: 0, paid: 0, owed: 0 };
+
+    logs.forEach((e, i) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${i + 1}</td>
+        <td>$${e.income.toFixed(2)}</td>
+        <td>$${e.expenses.toFixed(2)}</td>
+        <td>$${e.deductions.toFixed(2)}</td>
+        <td>$${e.net.toFixed(2)}</td>
+        <td>$${e.se.toFixed(2)}</td>
+        <td>$${e.fed.toFixed(2)}</td>
+        <td>$${e.stateTax.toFixed(2)}</td>
+        <td>$${e.total.toFixed(2)}</td>
+        <td>$${e.paid.toFixed(2)}</td>
+        <td><strong>$${e.owed.toFixed(2)}</strong></td>
+        <td><button onclick="deleteEntry(${i})">❌</button></td>`;
+      tbody.appendChild(row);
+      for (let k in totals) totals[k] += e[k];
+    });
+
+    document.getElementById("summaryBox").innerHTML =
+      `<strong>Year-to-Date:</strong><br>Gross: $${totals.income.toFixed(2)} | Expenses: $${totals.expenses.toFixed(2)} | Deductions: $${totals.deductions.toFixed(2)} | Net: $${totals.net.toFixed(2)} | Owed: $${totals.owed.toFixed(2)}`;
+  }
+
+  function deleteEntry(index) {
+    const logs = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    logs.splice(index, 1);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(logs));
+    renderTable();
+  }
+
+  function exportCSV() {
+    const logs = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    let csv = "Income,Expenses,Deductions,Net,SE,Federal,State,Total,Paid,Owed\n";
+    logs.forEach(e => {
+      csv += `${e.income},${e.expenses},${e.deductions},${e.net},${e.se},${e.fed},${e.stateTax},${e.total},${e.paid},${e.owed}\n`;
+    });
+    const blob = new Blob([csv], { type: "text/csv" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "1099_tax_log.csv";
+    a.click();
+  }
+
+  function runAudit() {
+    const logs = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    let failed = [];
+
+    logs.forEach((e, i) => {
+      const fails = [];
+      if (e.sqft > 300) fails.push("Home office exceeds 300 sqft limit.");
+      if (e.internet > 100) fails.push("Internet business % over 100%.");
+      if (e.net < 0) fails.push("Net income is negative.");
+      if (fails.length) failed.push(`🚨 Entry ${i + 1}: ${fails.join(" ")}`);
+    });
+
+    const auditBox = document.getElementById("auditBox");
+    if (failed.length === 0) {
+      auditBox.innerHTML = "✅ All entries pass IRS audit checks.";
+    } else {
+      auditBox.innerHTML = "<strong>Audit Summary:</strong><br>" + failed.join("<br>");
     }
+    auditBox.style.display = "block";
+  }
 
-    async function detectLatency() {
-      const latencyField = document.getElementById("latency");
-      const start = performance.now();
-      try {
-        await fetch("https://1.1.1.1/cdn-cgi/trace", { mode: "no-cors" });
-        const end = performance.now();
-        const latency = Math.round(end - start);
-        latencyField.value = latency <= 120 ? "120" : "Higher";
-      } catch {
-        latencyField.value = "Higher";
-      }
-    }
-
-    async function runDownloadTest() {
-      const el = document.getElementById("downloadSpeed");
-      const status = document.getElementById("status");
-      const progress = document.getElementById("progressFill");
-
-      status.textContent = "Testing download speed...";
-      progress.style.width = "30%";
-      try {
-        const start = performance.now();
-        await fetch("https://upload.wikimedia.org/wikipedia/commons/3/3c/Shaki_waterfall.jpg", { cache: "no-cache" });
-        const end = performance.now();
-        const speed = (1048576 * 8) / ((end - start) / 1000) / 1_000_000;
-        el.value = speed >= 10 ? "10" : "Lower";
-        status.textContent = `Download: ${speed.toFixed(2)} Mbps`;
-        progress.style.width = "100%";
-        setTimeout(() => (progress.style.width = "0%"), 3000);
-      } catch {
-        el.value = "";
-        status.textContent = "Download test failed.";
-      }
-    }
-
-    async function runUploadTest() {
-      const el = document.getElementById("uploadSpeed");
-      const status = document.getElementById("status");
-      const progress = document.getElementById("progressFill");
-
-      status.textContent = "Testing upload speed...";
-      progress.style.width = "30%";
-      try {
-        const blob = new Blob([new Uint8Array(1024 * 1024)]);
-        const start = performance.now();
-        await fetch("https://httpbin.org/post", { method: "POST", body: blob });
-        const end = performance.now();
-        const speed = (blob.size * 8) / ((end - start) / 1000) / 1_000_000;
-        el.value = speed >= 3 ? "3" : "Lower";
-        status.textContent = `Upload: ${speed.toFixed(2)} Mbps`;
-        progress.style.width = "100%";
-        setTimeout(() => (progress.style.width = "0%"), 3000);
-      } catch {
-        el.value = "";
-        status.textContent = "Upload test failed.";
-      }
-    }
-
-    function checkCompatibility() {
-      const checks = [
-        { id: "cpu", pass: v => v.includes("Intel") || v.includes("Ryzen"), fix: "Upgrade to Intel i5 / Ryzen 3 or better" },
-        { id: "ram", pass: v => parseInt(v) >= 8, fix: "Upgrade RAM to 8GB or more" },
-        { id: "os", pass: v => ["Windows 11","Windows 10","Windows 8.1","macOS"].includes(v), fix: "Use Windows 10, 11 or macOS" },
-        { id: "monitorResolution", pass: v => v === "1280x1024", fix: "Use 1280x1024 resolution monitor" },
-        { id: "dualMonitors", pass: v => v === "Yes", fix: "Add a second monitor" },
-        { id: "usbHeadset", pass: v => v === "Yes", fix: "Use USB headset" },
-        { id: "usbMemoryStick", pass: v => v === "Yes", fix: "Use USB 3.0 flash drive" },
-        { id: "wiredInternet", pass: v => v === "Yes", fix: "Connect using Ethernet (no Wi-Fi)" },
-        { id: "downloadSpeed", pass: v => v === "10", fix: "Increase download speed to 10 Mbps+" },
-        { id: "uploadSpeed", pass: v => v === "3", fix: "Increase upload speed to 3 Mbps+" },
-        { id: "latency", pass: v => v === "120", fix: "Reduce latency under 120ms (Ethernet recommended)" },
-        { id: "storage", pass: v => v === "60", fix: "Ensure at least 60GB total disk space" },
-        { id: "freeStorage", pass: v => v === "20", fix: "Free at least 20GB of disk space" }
-      ];
-
-      let html = "<table><tr><th>Feature</th><th>Status</th><th>Recommendation</th></tr>";
-      let allPass = true;
-
-      for (const check of checks) {
-        const val = document.getElementById(check.id).value;
-        const passed = check.pass(val);
-        html += `<tr class="${passed ? 'pass' : 'fail'}"><td>${check.id.toUpperCase()}</td><td>${passed ? '✅ Pass' : '❌ Fail'}</td><td>${passed ? '-' : check.fix}</td></tr>`;
-        if (!passed) allPass = false;
-      }
-      html += "</table>";
-      html += allPass
-        ? '<div class="summary-pass">✅ Your system meets all Arise requirements!</div>'
-        : '<div class="summary-fail">❌ Your system does NOT meet all requirements. See recommendations above.</div>';
-
-      document.getElementById("result").innerHTML = html;
-    }
-  </script>
+  window.onload = () => {
+    renderTable();
+    updateMileageNote();
+  };
+</script>
 </body>
 </html>
