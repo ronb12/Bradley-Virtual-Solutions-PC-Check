@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Bradley Virtual Solutions – Full PC Check (Windows 11 Ready)</title>
+  <title>Bradley Virtual Solutions – Full PC Check (Arise + Windows 11)</title>
   <style>
     body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
     .container { background: #fff; padding: 25px; border-radius: 10px; max-width: 800px; margin: auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
@@ -19,15 +20,13 @@
 </head>
 <body onload="autoDetectSystemInfo()">
   <div class="container">
-    <h2>Bradley Virtual Solutions – PC Compatibility Check</h2>
+    <h2>Bradley Virtual Solutions – Full Arise PC Compatibility Check</h2>
 
-    <label for="os">Operating System:</label>
-    <select id="os">
+    <label for="cpu">CPU Model:</label>
+    <select id="cpu">
       <option value="">Select</option>
-      <option value="Windows 11">Windows 11</option>
-      <option value="Windows 10">Windows 10</option>
-      <option value="Windows 8.1">Windows 8.1</option>
-      <option value="macOS">macOS</option>
+      <option value="Intel i5">Intel Core i5 or better</option>
+      <option value="AMD Ryzen 3">AMD Ryzen 3 or better</option>
       <option value="Other">Other</option>
     </select>
 
@@ -40,11 +39,84 @@
       <option value="32">32 GB+</option>
     </select>
 
-    <label for="latency">Network Latency (ms):</label>
+    <label for="os">Operating System:</label>
+    <select id="os">
+      <option value="">Select</option>
+      <option value="Windows 11">Windows 11</option>
+      <option value="Windows 10">Windows 10</option>
+      <option value="Windows 8.1">Windows 8.1</option>
+      <option value="macOS">macOS</option>
+      <option value="Other">Other</option>
+    </select>
+
+    <label for="monitorResolution">Monitor Resolution:</label>
+    <select id="monitorResolution">
+      <option value="">Select</option>
+      <option value="1280x1024">1280x1024 or higher</option>
+      <option value="Lower">Lower</option>
+    </select>
+
+    <label for="dualMonitors">Dual Monitors:</label>
+    <select id="dualMonitors">
+      <option value="">Select</option>
+      <option value="Yes">Yes</option>
+      <option value="No">No</option>
+    </select>
+
+    <label for="usbHeadset">USB Headset:</label>
+    <select id="usbHeadset">
+      <option value="">Select</option>
+      <option value="Yes">Yes</option>
+      <option value="No">No</option>
+    </select>
+
+    <label for="usbMemoryStick">USB 3.0 Flash Drive:</label>
+    <select id="usbMemoryStick">
+      <option value="">Select</option>
+      <option value="Yes">Yes</option>
+      <option value="No">No</option>
+    </select>
+
+    <label for="wiredInternet">Wired Internet:</label>
+    <select id="wiredInternet">
+      <option value="">Select</option>
+      <option value="Yes">Yes (Ethernet)</option>
+      <option value="No">No (Wi-Fi)</option>
+    </select>
+
+    <label for="downloadSpeed">Download Speed (Mbps):</label>
+    <select id="downloadSpeed">
+      <option value="">Not Tested</option>
+      <option value="10">10 Mbps or higher</option>
+      <option value="Lower">Lower than 10 Mbps</option>
+    </select>
+
+    <label for="uploadSpeed">Upload Speed (Mbps):</label>
+    <select id="uploadSpeed">
+      <option value="">Not Tested</option>
+      <option value="3">3 Mbps or higher</option>
+      <option value="Lower">Lower than 3 Mbps</option>
+    </select>
+
+    <label for="latency">Latency (ms):</label>
     <select id="latency">
       <option value="">Detecting...</option>
       <option value="120">120 ms or lower</option>
       <option value="Higher">Higher than 120 ms</option>
+    </select>
+
+    <label for="storage">Total Storage (GB):</label>
+    <select id="storage">
+      <option value="">Select</option>
+      <option value="60">60 GB or higher</option>
+      <option value="Lower">Lower than 60 GB</option>
+    </select>
+
+    <label for="freeStorage">Free Storage (GB):</label>
+    <select id="freeStorage">
+      <option value="">Select</option>
+      <option value="20">20 GB or higher</option>
+      <option value="Lower">Lower than 20 GB</option>
     </select>
 
     <button onclick="autoDetectSystemInfo()">🔄 Auto-Detect System Info</button>
@@ -93,40 +165,35 @@
 
     function checkCompatibility() {
       const checks = [
-        {
-          id: "os", pass: val => ["Windows 11", "Windows 10", "Windows 8.1", "macOS"].includes(val),
-          fix: "Install Windows 10, 11, or macOS"
-        },
-        {
-          id: "ram", pass: val => parseInt(val) >= 8,
-          fix: "Upgrade RAM to 8GB or more"
-        },
-        {
-          id: "latency", pass: val => val === "120",
-          fix: "Reduce latency to 120ms or below (use Ethernet, limit background apps)"
-        }
+        { id: "cpu", pass: v => v.includes("Intel") || v.includes("Ryzen"), fix: "Upgrade to Intel i5 / Ryzen 3 or better" },
+        { id: "ram", pass: v => parseInt(v) >= 8, fix: "Upgrade RAM to 8GB or more" },
+        { id: "os", pass: v => ["Windows 11","Windows 10","Windows 8.1","macOS"].includes(v), fix: "Use Windows 10, 11 or macOS" },
+        { id: "monitorResolution", pass: v => v === "1280x1024", fix: "Use 1280x1024 resolution monitor" },
+        { id: "dualMonitors", pass: v => v === "Yes", fix: "Add a second monitor" },
+        { id: "usbHeadset", pass: v => v === "Yes", fix: "Use USB headset" },
+        { id: "usbMemoryStick", pass: v => v === "Yes", fix: "Use USB 3.0 flash drive" },
+        { id: "wiredInternet", pass: v => v === "Yes", fix: "Connect using Ethernet (no Wi-Fi)" },
+        { id: "downloadSpeed", pass: v => v === "10", fix: "Increase download speed to 10 Mbps+" },
+        { id: "uploadSpeed", pass: v => v === "3", fix: "Increase upload speed to 3 Mbps+" },
+        { id: "latency", pass: v => v === "120", fix: "Reduce latency under 120ms (Ethernet recommended)" },
+        { id: "storage", pass: v => v === "60", fix: "Ensure at least 60GB total disk space" },
+        { id: "freeStorage", pass: v => v === "20", fix: "Free at least 20GB of disk space" }
       ];
 
-      let resultHTML = "<table><tr><th>Feature</th><th>Status</th><th>Recommendation</th></tr>";
+      let html = "<table><tr><th>Feature</th><th>Status</th><th>Recommendation</th></tr>";
       let allPass = true;
-
       for (const check of checks) {
         const val = document.getElementById(check.id).value;
         const passed = check.pass(val);
-        resultHTML += `<tr class="${passed ? 'pass' : 'fail'}">
-          <td>${check.id.toUpperCase()}</td>
-          <td>${passed ? '✅ Pass' : '❌ Fail'}</td>
-          <td>${passed ? '-' : check.fix}</td>
-        </tr>`;
+        html += `<tr class="${passed ? 'pass' : 'fail'}"><td>${check.id.toUpperCase()}</td><td>${passed ? '✅ Pass' : '❌ Fail'}</td><td>${passed ? '-' : check.fix}</td></tr>`;
         if (!passed) allPass = false;
       }
+      html += "</table>";
+      html += allPass
+        ? '<div class="summary-pass">✅ Your system meets all Arise requirements!</div>'
+        : '<div class="summary-fail">❌ Your system does NOT meet all requirements. See recommendations above.</div>';
 
-      resultHTML += "</table>";
-      resultHTML += allPass
-        ? '<div class="summary-pass">✅ Your system meets all requirements!</div>'
-        : '<div class="summary-fail">❌ Some requirements are not met. Please see recommendations above.</div>';
-
-      document.getElementById("result").innerHTML = resultHTML;
+      document.getElementById("result").innerHTML = html;
     }
   </script>
 </body>
