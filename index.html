@@ -1,20 +1,58 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Bradley Virtual Solutions – PC Check (Win11 Ready)</title>
+  <title>Bradley Virtual Solutions – Full PC Check (Windows 11 Ready)</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
+    .container { background: #fff; padding: 25px; border-radius: 10px; max-width: 800px; margin: auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    label { font-weight: bold; display: block; margin-top: 15px; }
+    select, button { width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 10px; }
+    table { width: 100%; margin-top: 20px; border-collapse: collapse; }
+    th, td { padding: 10px; border: 1px solid #ccc; }
+    .pass { background-color: #d4edda; }
+    .fail { background-color: #f8d7da; }
+    .summary-pass { background: #d4edda; color: #155724; padding: 15px; margin-top: 15px; text-align: center; border-radius: 6px; }
+    .summary-fail { background: #f8d7da; color: #721c24; padding: 15px; margin-top: 15px; text-align: center; border-radius: 6px; }
+  </style>
 </head>
-<body>
-  <select id="os">
-    <option value="">Select</option>
-    <option value="Windows 11">Windows 11</option>
-    <option value="Windows 10">Windows 10</option>
-    <option value="Windows 8.1">Windows 8.1</option>
-    <option value="macOS">macOS</option>
-    <option value="Other">Other</option>
-  </select>
+<body onload="autoDetectSystemInfo()">
+  <div class="container">
+    <h2>Bradley Virtual Solutions – PC Compatibility Check</h2>
+
+    <label for="os">Operating System:</label>
+    <select id="os">
+      <option value="">Select</option>
+      <option value="Windows 11">Windows 11</option>
+      <option value="Windows 10">Windows 10</option>
+      <option value="Windows 8.1">Windows 8.1</option>
+      <option value="macOS">macOS</option>
+      <option value="Other">Other</option>
+    </select>
+
+    <label for="ram">RAM (GB):</label>
+    <select id="ram">
+      <option value="">Select</option>
+      <option value="4">4 GB</option>
+      <option value="8">8 GB</option>
+      <option value="16">16 GB</option>
+      <option value="32">32 GB+</option>
+    </select>
+
+    <label for="latency">Network Latency (ms):</label>
+    <select id="latency">
+      <option value="">Detecting...</option>
+      <option value="120">120 ms or lower</option>
+      <option value="Higher">Higher than 120 ms</option>
+    </select>
+
+    <button onclick="autoDetectSystemInfo()">🔄 Auto-Detect System Info</button>
+    <button onclick="checkCompatibility()">✅ Check Compatibility</button>
+
+    <div id="result"></div>
+  </div>
+
   <script>
     function autoDetectSystemInfo() {
       const ua = navigator.userAgent.toLowerCase();
@@ -30,9 +68,66 @@
       } else {
         document.getElementById("os").value = "Other";
       }
+
+      const ram = navigator.deviceMemory || 0;
+      if (ram > 0) {
+        const ramOption = ram >= 32 ? "32" : ram >= 16 ? "16" : ram >= 8 ? "8" : "4";
+        document.getElementById("ram").value = ramOption;
+      }
+
+      detectLatency();
     }
 
-    window.onload = autoDetectSystemInfo;
+    async function detectLatency() {
+      const latencyField = document.getElementById("latency");
+      const start = performance.now();
+      try {
+        await fetch("https://1.1.1.1/cdn-cgi/trace", { mode: "no-cors" });
+        const end = performance.now();
+        const latency = Math.round(end - start);
+        latencyField.value = latency <= 120 ? "120" : "Higher";
+      } catch {
+        latencyField.value = "Higher";
+      }
+    }
+
+    function checkCompatibility() {
+      const checks = [
+        {
+          id: "os", pass: val => ["Windows 11", "Windows 10", "Windows 8.1", "macOS"].includes(val),
+          fix: "Install Windows 10, 11, or macOS"
+        },
+        {
+          id: "ram", pass: val => parseInt(val) >= 8,
+          fix: "Upgrade RAM to 8GB or more"
+        },
+        {
+          id: "latency", pass: val => val === "120",
+          fix: "Reduce latency to 120ms or below (use Ethernet, limit background apps)"
+        }
+      ];
+
+      let resultHTML = "<table><tr><th>Feature</th><th>Status</th><th>Recommendation</th></tr>";
+      let allPass = true;
+
+      for (const check of checks) {
+        const val = document.getElementById(check.id).value;
+        const passed = check.pass(val);
+        resultHTML += `<tr class="${passed ? 'pass' : 'fail'}">
+          <td>${check.id.toUpperCase()}</td>
+          <td>${passed ? '✅ Pass' : '❌ Fail'}</td>
+          <td>${passed ? '-' : check.fix}</td>
+        </tr>`;
+        if (!passed) allPass = false;
+      }
+
+      resultHTML += "</table>";
+      resultHTML += allPass
+        ? '<div class="summary-pass">✅ Your system meets all requirements!</div>'
+        : '<div class="summary-fail">❌ Some requirements are not met. Please see recommendations above.</div>';
+
+      document.getElementById("result").innerHTML = resultHTML;
+    }
   </script>
 </body>
 </html>
