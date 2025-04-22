@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Bradley Virtual Solutions – Full PC Check (Arise + Windows 11)</title>
+  <title>Bradley Virtual Solutions – Full PC Check</title>
   <style>
     body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
     .container { background: #fff; padding: 25px; border-radius: 10px; max-width: 800px; margin: auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
@@ -12,10 +11,12 @@
     select, button { width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 10px; }
     table { width: 100%; margin-top: 20px; border-collapse: collapse; }
     th, td { padding: 10px; border: 1px solid #ccc; }
-    .pass { background-color: #d4edda; }
-    .fail { background-color: #f8d7da; }
+    .pass { background-color: #d4edda; color: #155724; }
+    .fail { background-color: #f8d7da; color: #721c24; }
     .summary-pass { background: #d4edda; color: #155724; padding: 15px; margin-top: 15px; text-align: center; border-radius: 6px; }
     .summary-fail { background: #f8d7da; color: #721c24; padding: 15px; margin-top: 15px; text-align: center; border-radius: 6px; }
+    #progressBar { height: 10px; background: #ccc; border-radius: 5px; overflow: hidden; margin-bottom: 15px; }
+    #progressFill { height: 100%; width: 0%; background: green; transition: width 0.3s ease; }
   </style>
 </head>
 <body onload="autoDetectSystemInfo()">
@@ -120,8 +121,12 @@
     </select>
 
     <button onclick="autoDetectSystemInfo()">🔄 Auto-Detect System Info</button>
+    <button onclick="runDownloadTest()">📥 Run Download Speed Test</button>
+    <button onclick="runUploadTest()">📤 Run Upload Speed Test</button>
     <button onclick="checkCompatibility()">✅ Check Compatibility</button>
 
+    <div id="progressBar"><div id="progressFill"></div></div>
+    <div id="status">Status updates will appear here.</div>
     <div id="result"></div>
   </div>
 
@@ -163,6 +168,51 @@
       }
     }
 
+    async function runDownloadTest() {
+      const el = document.getElementById("downloadSpeed");
+      const status = document.getElementById("status");
+      const progress = document.getElementById("progressFill");
+
+      status.textContent = "Testing download speed...";
+      progress.style.width = "30%";
+      try {
+        const start = performance.now();
+        await fetch("https://upload.wikimedia.org/wikipedia/commons/3/3c/Shaki_waterfall.jpg", { cache: "no-cache" });
+        const end = performance.now();
+        const speed = (1048576 * 8) / ((end - start) / 1000) / 1_000_000;
+        el.value = speed >= 10 ? "10" : "Lower";
+        status.textContent = `Download: ${speed.toFixed(2)} Mbps`;
+        progress.style.width = "100%";
+        setTimeout(() => (progress.style.width = "0%"), 3000);
+      } catch {
+        el.value = "";
+        status.textContent = "Download test failed.";
+      }
+    }
+
+    async function runUploadTest() {
+      const el = document.getElementById("uploadSpeed");
+      const status = document.getElementById("status");
+      const progress = document.getElementById("progressFill");
+
+      status.textContent = "Testing upload speed...";
+      progress.style.width = "30%";
+      try {
+        const blob = new Blob([new Uint8Array(1024 * 1024)]);
+        const start = performance.now();
+        await fetch("https://httpbin.org/post", { method: "POST", body: blob });
+        const end = performance.now();
+        const speed = (blob.size * 8) / ((end - start) / 1000) / 1_000_000;
+        el.value = speed >= 3 ? "3" : "Lower";
+        status.textContent = `Upload: ${speed.toFixed(2)} Mbps`;
+        progress.style.width = "100%";
+        setTimeout(() => (progress.style.width = "0%"), 3000);
+      } catch {
+        el.value = "";
+        status.textContent = "Upload test failed.";
+      }
+    }
+
     function checkCompatibility() {
       const checks = [
         { id: "cpu", pass: v => v.includes("Intel") || v.includes("Ryzen"), fix: "Upgrade to Intel i5 / Ryzen 3 or better" },
@@ -182,12 +232,14 @@
 
       let html = "<table><tr><th>Feature</th><th>Status</th><th>Recommendation</th></tr>";
       let allPass = true;
+
       for (const check of checks) {
         const val = document.getElementById(check.id).value;
         const passed = check.pass(val);
         html += `<tr class="${passed ? 'pass' : 'fail'}"><td>${check.id.toUpperCase()}</td><td>${passed ? '✅ Pass' : '❌ Fail'}</td><td>${passed ? '-' : check.fix}</td></tr>`;
         if (!passed) allPass = false;
       }
+
       html += "</table>";
       html += allPass
         ? '<div class="summary-pass">✅ Your system meets all Arise requirements!</div>'
@@ -198,3 +250,15 @@
   </script>
 </body>
 </html>
+"""
+
+# Save to file
+html_path = Path("/mnt/data/full-arise-pc-check.html")
+html_path.write_text(full_html)
+
+# Zip it
+zip_path = Path("/mnt/data/full-arise-pc-check.zip")
+with zipfile.ZipFile(zip_path, 'w') as zipf:
+    zipf.write(html_path, arcname="full-arise-pc-check.html")
+
+zip_path.as_posix()
